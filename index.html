@@ -8,14 +8,13 @@
 <body>
     <div class="upload" id="upload">
         <form enctype="multipart/form-data" method="post" name="fileinfo">
-            <div>
-                <input type="file" name="file" class="file-pipe">
-            </div>
-            <!-- <input type="submit" value="submit"/> -->
+            <label for="file">
+                <div>
+                    <input type="file" name="file" class="file-pipe" id="file">
+                </div>
+                <div class="upload-area">+</div>
+            </label>
         </form>
-        <div>
-            <img src="" class="upload-img" />
-        </div>
     </div>
     <script src="./upload.js"></script>
 </body>

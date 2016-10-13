@@ -1,9 +1,12 @@
+/*
+ * 移动端图片上传
+*/
 (function(win,doc){
-
     win.upload = {
         default:{
             class:'',
-            id:''
+            id:'',
+            action:''
         },
         init:function(opts){
             var _SELF = this;
@@ -27,14 +30,15 @@
                         alert('上传的文件类型有误');
                         return false;
                     }
-                    var _data = file;
-                    _SELF._upload(_data,_name);
+                    _SELF.default['file'] = file;
+                    _SELF.default['name'] = _name;
+                    _SELF._upload(_SELF.default);
                 })
             });
         },
         //判断文件类型
         _checkFileType:function(_type){
-            var _allowType = ['image/jpeg','image/png','image/gif'];
+            var _allowType = ['image/jpeg','image/png','image/bmp'];
             for(var i=0,l = _allowType.length; i<l; i++)
             {
                 if(_allowType[i] === _type){
@@ -44,14 +48,14 @@
             return false;
         },
         //上传到服务器
-        _upload:function(option,name){
+        _upload:function(option){
             var _SELF = this;
             var formData = new FormData();
-            formData.append(name,option);
+            formData.append(option.name,option.file);
             //创建ajax
             var _xhr = new XMLHttpRequest();
             //建立请求
-            _xhr.open('post','http://localhost/upload-pic/upload.php',true);
+            _xhr.open('post',option.action,true);
             _xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
             //发送请求
             formData?_xhr.send(formData):_xhr.send()
@@ -59,7 +63,7 @@
             _xhr.onreadystatechange = function(){
                 if(_xhr.readyState == 4){
                     if(_xhr.status == 200){
-                        alert(_xhr.responseText)
+                        console.log(_xhr.responseText)
                     }else{
                         alert('上传失败');
                     }
@@ -85,6 +89,7 @@
         }
     };
     upload.init({
-        class:'file-pipe'
+        class:'file-pipe',
+        action:'http://localhost/upload-pic/upload.php'
     });
 })(window,document)
