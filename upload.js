@@ -4,8 +4,7 @@
 (function(win,doc){
     win.upload = {
         default:{
-            class:'',
-            id:'',
+            el:'',
             action:''
         },
         init:function(opts){
@@ -15,10 +14,10 @@
             //初始化选择对象
             _SELF._file = _SELF._querySelect();
             //监听事件
-            _SELF._listener();
+            _SELF._post();
         },
         //监听文件事件
-        _listener:function(){
+        _post:function(){
             var _SELF = this;
             _SELF._file.addEventListener('change',function(){
                 if (!this.files.length) return;
@@ -49,26 +48,53 @@
         },
         //上传到服务器
         _upload:function(option){
+
+            if(typeof XMLHttpRequest === 'undefined'){
+                return;
+            }
+
             var _SELF = this;
             var formData = new FormData();
             formData.append(option.name,option.file);
             //创建ajax
             var _xhr = new XMLHttpRequest();
+            //上传进度
+            if(_xhr.upload){
+                _xhr.upload.onprogress = function progress(e){
+                    if (e.total > 0) {
+                        e.percent = e.loaded / e.total * 100;
+                    }
+                }
+            }
+            _xhr.onerror = function error(e){
+                console.log(e);
+            }
+            _xhr.onload  = function onload(){
+                //判断上传状态
+                if(_xhr.status < 200 || _xhr.status >= 300){
+                    var msg = 'cannot post ' + option.action + ' ' + _xhr.status + '\'';
+                    var err = new Error(msg);
+                    err.status = _xhr.status;
+                    err.method = 'post';
+                    err.url = option.action;
+                    console.log(err);
+                    return err;
+                }
+                var _text = _xhr.responseText || _xhr.response;
+                if(!_text){
+                    return _text
+                }
+                try{
+                    console.log(JSON.parse(_text));
+                }catch(e){
+                    return _text;
+                }
+            }
             //建立请求
             _xhr.open('post',option.action,true);
             _xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
             //发送请求
             formData?_xhr.send(formData):_xhr.send()
-            //请求回答
-            _xhr.onreadystatechange = function(){
-                if(_xhr.readyState == 4){
-                    if(_xhr.status == 200){
-                        console.log(_xhr.responseText)
-                    }else{
-                        alert('上传失败');
-                    }
-                }
-            }
         },
         //复制参数对象
         _copy:function(opts){
@@ -81,15 +107,15 @@
         //选择器
         _querySelect:function(){
             var _SELF = this;
-            var _isClass = _SELF.default['class']?true:_SELF.default['id']?false:-1;
-            if(!_isClass && _isClass != -1){
-                return doc.getElementById(_SELF.default['id']);
+            if(!_SELF.default['el']) return;
+            if(_SELF.default['el'].indexOf('#')>-1){
+                return doc.getElementById(_SELF.default['el'].replace('#',''));
             }
-            return doc.querySelector('.' + _SELF.default['class']);
+            return doc.querySelector(_SELF.default['el']);
         }
     };
     upload.init({
-        class:'file-pipe',
+        el:'.file-pipe',
         action:'http://localhost/upload-pic/upload.php'
     });
 })(window,document)
